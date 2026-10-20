@@ -1,0 +1,11 @@
+@model Medicine
+@{ ViewData["Title"] = "Edit Medicine"; }
+
+<h2 class="mb-3">Edit Medicine</h2>
+<form asp-action="Edit" method="post" class="card card-body">
+    <partial name="_Form" model="Model" />
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">Update</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>

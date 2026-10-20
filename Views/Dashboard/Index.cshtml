@@ -1,0 +1,83 @@
+@model DashboardViewModel
+@{ ViewData["Title"] = "Dashboard"; }
+
+<h2 class="mb-3">Dashboard</h2>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card text-bg-primary"><div class="card-body"><div>Total Medicines</div><h3>@Model.TotalMedicines</h3></div></div></div>
+    <div class="col-md-3"><div class="card text-bg-danger"><div class="card-body"><div>Expired</div><h3>@Model.ExpiredCount</h3></div></div></div>
+    <div class="col-md-3"><div class="card text-bg-warning"><div class="card-body"><div>Expiring in 30 days</div><h3>@Model.ExpiringSoonCount</h3></div></div></div>
+    <div class="col-md-3"><div class="card text-bg-secondary"><div class="card-body"><div>Low Stock (&lt; 10)</div><h3>@Model.LowStockCount</h3></div></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted">Sales Today</div><h4>₹@Model.SalesToday.ToString("0.00")</h4></div></div></div>
+    <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted">Total Revenue</div><h4>₹@Model.TotalRevenue.ToString("0.00")</h4></div></div></div>
+    <div class="col-md-2"><div class="card"><div class="card-body"><div class="text-muted">Sales Profit</div><h4 class="text-success">₹@Model.TotalProfit.ToString("0.00")</h4></div></div></div>
+    <div class="col-md-2"><div class="card"><div class="card-body"><div class="text-muted">Expiry Loss</div><h4 class="text-danger">₹@Model.ExpiryLoss.ToString("0.00")</h4></div></div></div>
+    <div class="col-md-2"><div class="card"><div class="card-body"><div class="text-muted">Net Profit</div><h4 class="@(Model.NetProfit >= 0 ? "text-success" : "text-danger")">₹@Model.NetProfit.ToString("0.00")</h4></div></div></div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5>Sales - Last 7 Days</h5>
+        <canvas id="salesChart" height="90"></canvas>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card border-danger h-100">
+            <div class="card-header bg-danger text-white">Expired Medicines</div>
+            <ul class="list-group list-group-flush">
+                @foreach (var m in Model.ExpiredList)
+                {
+                    <li class="list-group-item">@m.Name <small class="text-muted">(@m.ExpiryDate.ToString("dd MMM yyyy"), stock @m.Stock)</small></li>
+                }
+                @if (!Model.ExpiredList.Any()) { <li class="list-group-item text-muted">None 🎉</li> }
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-warning h-100">
+            <div class="card-header bg-warning">Expiring Within 30 Days</div>
+            <ul class="list-group list-group-flush">
+                @foreach (var m in Model.ExpiringSoonList)
+                {
+                    <li class="list-group-item">@m.Name <small class="text-muted">(@m.ExpiryDate.ToString("dd MMM yyyy"), stock @m.Stock)</small></li>
+                }
+                @if (!Model.ExpiringSoonList.Any()) { <li class="list-group-item text-muted">None</li> }
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-secondary h-100">
+            <div class="card-header bg-secondary text-white">Low Stock</div>
+            <ul class="list-group list-group-flush">
+                @foreach (var m in Model.LowStockList)
+                {
+                    <li class="list-group-item">@m.Name <small class="text-muted">(only @m.Stock left)</small></li>
+                }
+                @if (!Model.LowStockList.Any()) { <li class="list-group-item text-muted">None</li> }
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script>
+        new Chart(document.getElementById('salesChart'), {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartLabels)),
+                datasets: [{
+                    label: 'Sales (₹)',
+                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ChartData)),
+                    backgroundColor: 'rgba(25, 135, 84, 0.7)'
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true } } }
+        });
+    </script>
+}
